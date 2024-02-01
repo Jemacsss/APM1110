@@ -1,0 +1,78 @@
+---
+title: "MACAGBA, JAN EDWARD F.-FA1"
+output: pdf_document
+date: "2024-02-01"
+---
+
+```{r skewness, include=TRUE}
+library(e1071)
+library(tinytex)
+
+results=read.csv("C:/Users/asus/Documents/Macagba_R/data.csv",header=T)
+results
+
+skewness(results$arch1, na.rm = T)
+skewness(results$arch2, na.rm = T)
+skewness(results$prog1, na.rm = T)
+skewness(results$prog2, na.rm = T)
+```
+In the data it would be seen that all of the examination subjects are all 
+negative except for arch2 which is positive. It can be also seen that the prog1
+and prog2 are closer to each other while arch1 is the one skewed to the very
+left.
+
+------------------------------------------------------------------------------
+
+```{r skewness with Pearsons Equation, include=TRUE}
+skew=function(x){
+  mean=mean(x, na.rm = T)
+  median=median(x, na.rm = T)
+  sd=sd(x, na.rm = T)
+  
+  skewness=3*(mean-median)/sd
+  
+  return(skewness)
+}
+
+arch1_skewness=skew(results$arch1)
+arch2_skewness=skew(results$arch2)
+prog1_skewness=skew(results$prog1)
+prog2_skewness=skew(results$prog2)
+
+print(arch1_skewness)
+print(arch2_skewness)
+print(prog1_skewness)
+print(prog2_skewness)
+```
+When using Pearsons equation, the data increased especially prog1 from a -0.329
+it became a -0.643 the other data increased by 1. I would say that using
+Pearsons equation has risk to it because there would be inaccuracies in the 
+data.
+
+------------------------------------------------------------------------------
+
+```{r Stem and Leaf, include=TRUE}
+Females=c(57,59,78,79,60,65,68,71,75,48,51,55,56,41,43,44,75,78,80,81,83,83,85)
+Males=c(48,49,49,30,30,31,32,35,37,41,86,42,51,53,56,42,44,50,51,65,67,51,56,
+        58,64,64,75)
+
+stem(Females)
+stem(Males)
+```
+The advantages of using the stem and leaf display is that for small data it 
+would be much easier to find out the precise data instead of using a histogram.
+A stem and leaf would be easier to create than a histogram and also you would 
+be seeing the individual data and not just different bars.
+
+------------------------------------------------------------------------------
+
+```{r boxplot, include=TRUE}
+Females=c(57,59,78,79,60,65,68,71,75,48,51,55,56,41,43,44,75,78,80,81,83,83,85)
+Males=c(48,49,49,30,30,31,32,35,37,41,86,42,51,53,56,42,44,50,51,65,67,51,56,
+        58,64,64,75)
+
+boxplot(Females, Males, names=c("Females", "Males"), main="Grades by Gender", 
+        ylab="Grades",col=c("#FFE5E5","#756AB6"))
+```
+The finding for the boxplot is that the grades for the Female group is higher 
+than the Male group with the median of the Female group being higher.  
