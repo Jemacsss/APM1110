@@ -1,0 +1,303 @@
+---
+title: "SA1"
+output: html_document
+date: "2024-03-19"
+flexdashboard::flex_dashboard:
+  orientation: rows
+runtime: shiny
+---
+Problem 1 
+
+A company has three factories producing a product. Factory 1 produces x~1~ of the product, factory 2 produces x~2~, and factory 3 produces x~3~, where $\sum_{i=1}^{3} x_i = 1$. The defective rates of the products are y~1~, y~2~, and y~3~ respectively, where $\sum_{i=1}^{3} y_i = 0.12$. Write a program (user input for x~i~ and y~i~) to calculate the probability that a randomly selected product is defective.
+
+*Note that your program should render prompt message to satisfy the following conditions:
++ 0.10 ≤ x~i~ ≤ 0.40 or 10% ≤ x~i~ ≤ 40% and $\sum_{i=1}^{3} x_i = 1$.
++ 0.01 ≤ y~i~ ≤ 0.05 or 1% ≤ x~i~ ≤ 5% and $\sum_{i=1}^{3} y_i = 0.12$.
+```{r}
+library(flexdashboard)
+library(shiny)
+
+# Define UI
+ui <- fluidPage(
+  titlePanel("Defective Product Probability Calculator"),
+  sidebarLayout(
+    sidebarPanel(
+      numericInput("x1", "Production quantity for Factory 1:", value = 0.3, min = 0.1, max = 0.4, step = 0.01),
+      numericInput("x2", "Production quantity for Factory 2:", value = 0.3, min = 0.1, max = 0.4, step = 0.01),
+      numericInput("x3", "Production quantity for Factory 3:", value = 0.4, min = 0.1, max = 0.4, step = 0.01),
+      numericInput("y1", "Defective rate for Factory 1:", value = 0.04, min = 0, max = 0.1, step = 0.01),
+      numericInput("y2", "Defective rate for Factory 2:", value = 0.04, min = 0, max = 0.1, step = 0.01),
+      numericInput("y3", "Defective rate for Factory 3:", value = 0.04, min = 0, max = 0.1, step = 0.01),
+      actionButton("calculate", "Calculate Probability")
+    ),
+    mainPanel(
+      h4("Probability that a randomly selected product is defective:"),
+      verbatimTextOutput("probability_output")
+    )
+  )
+)
+
+# Define server logic
+server <- function(input, output) {
+  observeEvent(input$calculate, {
+    # Retrieve inputs
+    x <- c(input$x1, input$x2, input$x3)
+    y <- c(input$y1, input$y2, input$y3)
+    
+    # Check if input values meet the specified conditions
+    if (sum(x) != 1 || any(x < 0.1 | x > 0.4)) {
+      output$probability_output <- renderPrint({
+        "Error: Production quantities xi should sum up to 1 and each xi should be between 0.1 and 0.4."
+      })
+    } else if (sum(y) != 0.12 || any(y < 0 | y > 0.1)) {
+      output$probability_output <- renderPrint({
+        "Error: Defective rates yi should sum up to 0.12 and each yi should be between 0 and 0.1."
+      })
+    } else {
+      # Calculate the probability of a randomly selected product being defective
+      X <- sum(x)
+      Y <- sum(y)
+      probability <- Y / X
+      output$probability_output <- renderPrint({
+        paste("Probability that a randomly selected product is defective:", probability)
+      })
+    }
+  })
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+
+```
+
+<br><br>
+Problem 2
+
+With your own computing experience, develop a front end to R that allows the user
+
+* to input the values of a univariate discrete random variable and the associated probabilities and to obtain the mean and variance, and
+* to input the values of a bivariate discrete random variable and the associated probabilities and to obtain the marginal and conditional distributions.
+
+Your program should provide a facility to calculate the mean and variance of each distribution, and to plot the pdf and cdf. In each program, do validity checks that the probabilities are in the interval [0, 1], and that they sum to one.
+```{r}
+library(ggplot2)
+library(shiny)
+
+ui=fluidPage(
+  titlePanel("Discrete Random Variable Analyzer"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("var_type", "Select variable type:",
+                  choices= c("Univariate","Bivariate")),
+      
+      conditionalPanel(
+        condition= "input.var_type == 'Univariate'",
+        textInput("value_input","Enter values (Separated by comma):"),
+        textInput("Prob_input","Enter Probabilities (0-1) (Separated by comma):"),
+      ),
+      conditionalPanel(
+        condition= "input.var_type == 'Bivariate'",
+        textInput("x_value_input","Enter X values (Separated by comma)"),
+        textInput("y_value_input","Enter Y values (Separated by comma)"),
+        textInput("joint_prob_input","Enter Probabilities (0-1) (Separated by comma):")
+      ),
+      actionButton("calc_button","Calculate"),
+      br(),
+      textOutput("mean_output"),
+      textOutput("Variance_output")
+    ),
+    
+    mainPanel(
+      plotOutput("pdf_plot"),
+      plotOutput("cdf_plot")
+    )
+  )
+)
+
+server=function(input,output){
+  observeEvent(input$calc_button,{
+    probabilities=NULL
+    if(input$var_type == "Univariate"){
+      values= unlist(strsplit(input$value_input,","))
+      probabilities= unlist(strsplit(input$Prob_input,","))
+    } else if(input$var_type == "Univariate"){
+      x-val= unlist(strsplit(input$x_value_input,","))
+      y-val= unlist(strsplit(input$y_value_input,","))
+      probabilities= unlist(strsplit(input$joint_prob_input,","))
+    }
+    probabilities= as.numeric(probabilities)
+    
+    if (is.null(probabilities) || any(probabilities<0) ||any(probabilities>1) || sum(probabilities) != 1){
+      return()
+    }
+    
+    if (input$var_type=="Univariate"){
+      mean_value= sum(as.numeric(values)* probabilities)
+      variance_value= sum((as.numeric(values)- mean_value)^2*probabilities)
+    }else if (input$var_type=="Bivariate"){
+      marg_x= rowSums(matrix(probabilities,nrow=length(x_val), byrow=TRUE))
+      marg_y= rowSums(matrix(probabilities,ncol=length(y_val)))
+      
+      cond_x= matrix(probabilities/marg_y,nrow=length(x_val), byrow=TRUE)
+      cond_x= matrix(probabilities/marg_x,ncol=length(y_val))
+      
+      mean_x=sum(as.numeric(x_val)*marg_x)
+      mean_y=sum(as.numeric(y_val)*marg_y)
+      mean_cond_x= sum(as.numeric(x_val) * cond_x)
+      mean_cond_y= sum(as.numeric(y_val) * cond_y)
+      
+      variance_x= sum((as.numeric(x_val)- mean_cond_x)^2 * cond_x)
+      variance_y= sum((as.numeric(y_val)- mean_cond_y)^2 * cond_y)
+    }
+    output$mean_output=renderText({
+      if (input$var_type=="Univariate") {
+        paste("Mean:", round(mean_value,4))
+      } else if (input$var_type=="Bivariate"){
+        paste("Marginal X mean:", round(mean_x,4),"\n",
+              "Marginal X mean:", round(mean_y,4),"\n",
+              "Conditional X mean:", round(mean_cond_x,4),"\n",
+              "Conditional Y mean:", round(mean_cond_y,4))
+      }
+    })
+    output$variance_output=renderText({
+      if (input$var_type=="Univariate") {
+        paste("Variance:", round(variance_value,4))
+      } else if (input$var_type=="Bivariate"){
+        paste("Marginal X variance:", round(variance_x,4),"\n",
+              "Marginal X variance:", round(variance_y,4),"\n",
+              "Conditional X variance:", round(variance_cond_x,4),"\n",
+              "Conditional Y variance:", round(variance_cond_y,4))
+      }
+    })
+    
+    if (input$var_type=="Univariate"){
+      output$pdf_plot=renderPlot({
+        data=data.frame(as.numeric(values), probabilities=probabilities)
+        ggplot(data,aes(x= values, y= probabilities))+ geom_col(fill="steelblue")+
+          labs(title="Probability Density Function",x="Values", y= "Probabilities")
+      })
+      
+      output$cdf_plot=renderPlot({
+        data=data.frame(as.numeric(values), probabilities=cumsum(probabilities))
+        ggplot(data,aes(x= values, y= probabilities))+ geom_step(fill="darkred")+
+          labs(title="Cumulative DistributionFunction",x="Values", y= "Probabilities")
+      })
+      
+    }
+  })
+}
+
+shinyApp(ui=ui, server=server)
+```
+
+<br><br>
+Problem 3
+
+By generating 10,000 searches in R, carry out a simulation experiment for a search engine going through a list of sites for a given key phrase, until the key phrase is found. You should allow your program to input the probability p that any site will contain the key phrase.
+
+* Plot the simulated pdf and calculate its mean and variance, and
+* Obtain the simulated conditional distribution of searches when three searches have been carried out without success. Calculate its mean and variance, and satisfy yourself that they are equivalent to the simulated distribution of the complete set.
+
+As test data assume each site has a 60% chance of containing the key phrase.
+To satisfy yourself that the Markov memoryless property holds, obtain estimates of
+
+a. P(X=4 | X>3) and P(X=1)
+b. P(X=5 | X>3) and P(X=2)
+
+where X is the number of searches to the first success
+```{r}
+library(shiny)
+library(ggplot2)
+
+
+sim <- function(p) {
+  success <- FALSE
+  search <- 0
+  
+  while (!success) {
+    search <- search + 1
+    if (runif(1) <= p) {
+      success <- TRUE
+    }
+  }
+  
+  return(search)
+}
+
+
+ui <- fluidPage(
+  titlePanel("Search Engine Simulation"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("prob", "Probability that any site will contain the key phrase:",
+                  min = 0, max = 1, value = 0.6, step = 0.01),
+      actionButton("simulate", "Simulate")
+    ),
+    mainPanel(
+      plotOutput("pdf_plot"),
+      h4("Mean and Variance:"),
+      verbatimTextOutput("mean_var_output"),
+      h4("Conditional Distribution (when three searches have been carried out without success):"),
+      verbatimTextOutput("conditional_output"),
+      h4("Markov Memoryless Property Estimates:"),
+      verbatimTextOutput("markov_output")
+    )
+  )
+)
+
+
+server <- function(input, output) {
+  observeEvent(input$simulate, {
+    searches <- replicate(10000, sim(input$prob))
+    
+    output$pdf_plot <- renderPlot({
+      ggplot(data.frame(searches = searches), aes(x = searches)) +
+        geom_histogram(bins = 30, fill = "pink", color = "black", alpha = 0.7) +
+        geom_density(aes(y = ..count..), color = "skyblue", size = 1) +  # Thicken the density line
+        labs(title = "Probability Density of Searches ", x = "Number of Searches", y = "Probability Density") +
+        theme_minimal() +
+        theme(plot.title = element_text(hjust = 0.5))
+    })
+    
+
+    measearch <- mean(searches)
+    var_searches <- var(searches)
+    
+
+    conditional_searches <- searches[searches > 3]
+    
+
+    mean_conditional <- mean(conditional_searches)
+    var_conditional <- var(conditional_searches)
+    
+
+    prob_4_given_3 <- sum(searches == 4 & searches > 3) / sum(searches > 3)
+    prob_1 <- sum(searches == 1) / 10000
+    prob_5_given_3 <- sum(searches == 5 & searches > 3) / sum(searches > 3)
+    prob_2 <- sum(searches == 2) / 10000
+    
+
+    output$mean_var_output <- renderPrint({
+      paste("Mean of Searches:", measearch, "\n",
+            "Variance of Searches:", var_searches)
+    })
+    
+    output$conditional_output <- renderPrint({
+      paste("Mean of Conditional Searches:", mean_conditional, "\n",
+            "Variance of Conditional Searches:", var_conditional)
+    })
+    
+    output$markov_output <- renderPrint({
+      paste("P(X = 4 | X > 3):", prob_4_given_3, "\n",
+            "P(X = 1):", prob_1, "\n",
+            "P(X = 5 | X > 3):", prob_5_given_3, "\n",
+            "P(X = 2):", prob_2)
+    })
+  })
+}
+
+
+shinyApp(ui = ui, server = server)
+
+```
