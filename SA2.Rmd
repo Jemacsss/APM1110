@@ -1,0 +1,25 @@
+---
+title: "Untitled"
+output: github_document
+date: "2024-05-11"
+---
+
+```{r}
+library(readr)
+df <- read_csv("C:/Users/asus/Documents/APM1110/ETH-USD.csv")
+
+
+df2 <- df$Close - df$Open
+
+
+test <- shapiro.test(df2)
+print(test)
+
+
+hist(df2, main = "Histogram of Data", xlab = "Values")
+
+
+plot(density(df2), main = "Density Plot of Data", xlab = "Values", ylab = "Density")
+```
+For Ethereum returns from November 9, 2017 - April 15,2024, using Sharpio-Wilk Test
+it shows that the data is not normally distributed
