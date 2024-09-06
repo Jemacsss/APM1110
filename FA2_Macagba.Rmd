@@ -1,0 +1,57 @@
+---
+title: "MACAGBA_FA2"
+output: github_document
+date: '`r Sys.Date()`'
+---
+3.49)
+
+```{r 3.49}
+N <- 5
+X_j <- c(1,2,3,4,5)
+
+lside <- sum((X_j-1)^2)
+
+rside <- sum(X_j^2) - 2 * sum(X_j) + N
+
+cat(lside==rside)
+
+cat("Left Side:",lside, "\nRight Side:",rside)
+```
+3.51)
+
+```{r 3.51}
+U <- c(3,-2,5)
+V <- c(-4,-1,6)
+
+a <- sum(U*V)
+cat("1. a)", a, "\n")
+
+b <- sum((U+3)*(V-4))
+cat("2. b)", b, "\n")
+
+c <- sum(V^2)
+cat("3. c)", c, "\n")
+
+d <- sum(U) * sum(V)^2
+cat("4. d)", d, "\n")
+
+e <- sum(U*V^2)
+cat("5. e)", e, "\n")
+
+f <- sum(U^2 - 2*V^2 + 2)
+cat("6. f)", f, "\n")
+
+g <- sum(U/V)
+cat("7. g)", g, "\n")
+```
+3.90)
+
+```{r 3.90}
+set_a <- c(3,5,8,3,7,2) 
+geometricmean_a <- prod(set_a)^(1/length(set_a))
+cat("geometric mean of set a: ",geometricmean_a, "\n")
+
+set_b <- c(28.5, 73.6, 47.2, 31.5, 64.8) 
+geometricmean_b <- prod(set_b)^(1/length(set_b))
+cat("geometric mean of set b: ",geometricmean_b, "\n")
+```
